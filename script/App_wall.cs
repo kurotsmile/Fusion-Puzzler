@@ -4,13 +4,10 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.Advertisements;
 using UnityEngine.UI;
+using Carrot;
 
 public class App_wall : MonoBehaviour{
     public Carrot.Carrot carrot;
-    [Header("Ads")]
-    private string gameId = "3127190";
-    public string ads_id_app_vungle;
-    public string ads_id_trunggiang_Vungle;
 
     [Header("Obj App ui")]
 	public GameObject panel_menu;
@@ -63,7 +60,7 @@ public class App_wall : MonoBehaviour{
 	}
 
     public void load_app_online(){
-
+        this.Get_list_data_background();
     }
 
     public void load_app_offline(){
@@ -100,25 +97,43 @@ public class App_wall : MonoBehaviour{
         this.check_and_show_ads();
     }
 
-	private void act_get_list_category(string s_data){
-		this.carrot.clear_contain (this.area_body);
-		IList list=(IList)Carrot.Json.Deserialize(s_data);
-		for(int i=0;i<list.Count;i++){
-			IDictionary item_bk = (IDictionary)list [i];
-			GameObject item_category = Instantiate (prefab_category);
-            item_category.name = "item_category";
-            item_category.transform.SetParent (area_body);
-			item_category.transform.localPosition = new Vector3(0f, 0f, 0f);
-			item_category.transform.localScale = new Vector3 (1f, 1f, 1f);
-			item_category.GetComponent<Panel_category> ().txt_name.text = item_bk ["name"].ToString();
-			item_category.GetComponent<Panel_category> ().txt_desc.text = item_bk ["desc"].ToString();
-			item_category.GetComponent<Panel_category> ().id_cat= item_bk ["id"].ToString();
-			item_category.GetComponent<Panel_category> ().list_url_game1=(IList)item_bk ["url_game1"];
-            item_category.GetComponent<Panel_category> ().list_url_game2=(IList)item_bk ["url_game2"];
-			IList list_url_cat=((IList)item_bk ["url"]);
-			for (int y = 0; y < list_url_cat.Count; y++) this.carrot.get_img(list_url_cat [y].ToString(),item_category.GetComponent<Panel_category> ().img_bk[y]);
-		}
-        this.GetComponent<ControlUI>().panelInicial.GetComponent<ScrollRect>().verticalNormalizedPosition = 1f;
+    private void Get_list_data_background()
+    {
+        StructuredQuery q = new("background");
+        q.Set_limit(20);
+        carrot.server.Get_doc(q.ToJson(), Act_get_list_background_done);
+    }
+
+	private void Act_get_list_background_done(string s_data){
+        Fire_Collection fc = new(s_data);
+        if (!fc.is_null)
+        {
+            this.carrot.clear_contain(this.area_body);
+            for (int i = 0; i <fc.fire_document.Length; i++)
+            {
+                IDictionary item_bk =fc.fire_document[i].Get_IDictionary();
+                GameObject item_category = Instantiate(prefab_category);
+                item_category.name = "item_category_"+i;
+                item_category.transform.SetParent(area_body);
+                item_category.transform.localPosition = new Vector3(0f, 0f, 0f);
+                item_category.transform.localScale = new Vector3(1f, 1f, 1f);
+                item_category.GetComponent<Panel_category>().txt_name.text = item_bk["name"].ToString();
+                if (item_bk["buy"] != null)
+                {
+                    if (item_bk["buy"].ToString()=="0")
+                        item_category.GetComponent<Panel_category>().txt_desc.text = "Free";
+                    else
+                        item_category.GetComponent<Panel_category>().txt_desc.text = "Buy";
+                }
+                else
+                {
+                    item_category.GetComponent<Panel_category>().txt_desc.text ="Free";
+                }
+                item_category.GetComponent<Panel_category>().url_img = item_bk["icon"].ToString();
+                carrot.get_img(item_bk["icon"].ToString(), item_category.GetComponent<Panel_category>().img_bk);
+            }
+            this.GetComponent<ControlUI>().panelInicial.GetComponent<ScrollRect>().verticalNormalizedPosition = 1f;
+        }
     }
 
 	public void get_bk_in_category(string cat_id){
