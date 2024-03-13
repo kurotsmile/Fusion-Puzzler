@@ -16,7 +16,6 @@ public class App_wall : MonoBehaviour{
     public Carrot_DeviceOrientationChange app_scene;
 
     [Header("Obj App ui")]
-	public GameObject panel_menu;
     public GameObject panel_game2;
     public GameObject panel_game2_win;
 
@@ -33,10 +32,6 @@ public class App_wall : MonoBehaviour{
     public GameObject game2_Tile;
 
     [Header("Obj View")]
-    public GameObject btn_buy_ads;
-    public GameObject btn_bk_view_save;
-    public GameObject btn_bk_view_save_to_phone;
-    public GameObject btn_game2_save_to_phone;
     public GameObject btn_game2_storage;
     [Header("Sound Game")]
     public AudioSource[] sound;
@@ -60,7 +55,6 @@ public class App_wall : MonoBehaviour{
         this.carrot.game.Add_type_rank("Puzzler", data_offline.icon_game1);
         this.carrot.game.Add_type_rank("jigsaw", data_offline.icon_game2);
 
-        this.panel_menu.SetActive (false);
         this.panel_game2.gameObject.SetActive(false);
         this.panel_game2_win.SetActive(false);
 
@@ -79,12 +73,7 @@ public class App_wall : MonoBehaviour{
     private void check_app_exit()
     {
         this.play_sound(0);
-        if (this.panel_menu.activeInHierarchy)
-        {
-            this.back_home();
-            this.carrot.set_no_check_exit_app();
-        }
-        else if (this.GetComponent<ControlUI>().panelSeleccion.activeInHierarchy)
+        if (this.GetComponent<ControlUI>().panelSeleccion.activeInHierarchy)
         {
             this.GetComponent<ControlUI>().VolverAMenu();
             this.carrot.set_no_check_exit_app();
@@ -114,7 +103,6 @@ public class App_wall : MonoBehaviour{
 	public void back_home(){
         this.play_sound(0);
         this.area_body.parent.gameObject.SetActive (true);
-		this.panel_menu.SetActive (false);
         this.panel_game2.SetActive(false);
         this.carrot.ads.show_ads_Interstitial();
         this.clear_game_2();
@@ -128,7 +116,6 @@ public class App_wall : MonoBehaviour{
 		this.GetComponent<DescargarImagenes> ().puzzleImageList.Add (this.data_texture);
 		this.GetComponent<ControlUI> ().SeleccionarImagen (0);
 		this.GetComponent<ControlUI> ().show_select_by_texture (this.data_texture);
-		this.panel_menu.SetActive (false);
 	}
 
     public void play_game_1(Texture data_img,IDictionary data)
@@ -148,7 +135,6 @@ public class App_wall : MonoBehaviour{
     {
         this.play_sound(0);
         this.show_game_2(this.carrot.get_tool().ResampleAndCrop(this.data_texture,300,300));
-        this.panel_menu.SetActive(false);
     }
 
     public void play_game_2(Texture2D data_img,IDictionary data)
@@ -157,7 +143,6 @@ public class App_wall : MonoBehaviour{
         this.data_wal_cur = data;
         this.play_sound(0);
         this.show_game_2(data_img);
-        this.panel_menu.SetActive(false);
     }
 
     public void storage_bk_image()
@@ -166,23 +151,11 @@ public class App_wall : MonoBehaviour{
         this.data_offline.Add(data_wal_cur);
     }
 
-	public void rate_app ()
-	{
-        this.play_sound(0);
-        this.carrot.show_rate();
-	}
-
 	[ContextMenu ("delete data")]
 	public void delete_all_data(){
         this.carrot.stop_all_act();
         this.data_offline.On_load();
 	}
-
-    public void show_more_app()
-    {
-        this.play_sound(0);
-        this.carrot.show_list_carrot_app();
-    }
 
     public void app_share()
     {
@@ -208,26 +181,7 @@ public class App_wall : MonoBehaviour{
     }
 
     public void play_game_2_in_offline_and_view_bk(Texture2D data_img,string url_download){
-        this.check_show_btn_save_phone(url_download,true);
         this.show_game_2_customer(this.carrot.get_tool().ResampleAndCrop(data_img,300,300), 3, 3);
-    }
-
-    private void check_show_btn_save_phone(string s_url_download,bool is_storager){
-        this.btn_game2_save_to_phone.SetActive(false);
-        this.btn_bk_view_save_to_phone.SetActive(false);
-        this.btn_game2_storage.SetActive(false);
-        if(s_url_download!="camera_photo"){
-            if(!is_storager){
-                this.btn_bk_view_save_to_phone.SetActive(true);
-                this.btn_game2_save_to_phone.SetActive(true);
-                this.btn_game2_storage.SetActive(true);
-            }else{
-                if(this.carrot.is_online()){
-                    this.btn_game2_save_to_phone.SetActive(true);
-                    this.btn_bk_view_save_to_phone.SetActive(true);
-                }
-            }
-        }
     }
 
     private void show_game_2_customer(Texture2D data_img,int w,int h)
@@ -287,7 +241,20 @@ public class App_wall : MonoBehaviour{
     }
 
     public void show_setting(){
-        this.carrot.Create_Setting();
+        Carrot_Box box_setting=this.carrot.Create_Setting();
+
+        Carrot_Box_Item item_buy_all_img = box_setting.create_item_of_index("item_buy_all", 0);
+        item_buy_all_img.set_icon(carrot.icon_carrot_database);
+        item_buy_all_img.set_title("Unlock all photos");
+        item_buy_all_img.set_tip("Buy and use all images included in the game");
+        item_buy_all_img.set_act(() => carrot.buy_product(wall.index_buy_all_wall));
+        item_buy_all_img.set_type(Box_Item_Type.box_nomal);
+        item_buy_all_img.check_type();
+
+        Carrot_Box_Btn_Item btn_buy = item_buy_all_img.create_item();
+        btn_buy.set_icon(carrot.icon_carrot_buy);
+        btn_buy.set_color(carrot.color_highlight);
+        Destroy(btn_buy.GetComponent<Button>());
     }
 
     public void btn_show_login(){
@@ -301,16 +268,16 @@ public class App_wall : MonoBehaviour{
 
     private void onBySuccessPayCarrot(string id_product)
     {
-        if (id_product==this.carrot.shop.get_id_by_index(2))
+        if (id_product==this.carrot.shop.get_id_by_index(wall.index_buy_one_wall))
         {
-            this.carrot.show_msg("Successful purchase", "You can now get the link to download the image in your browser, thank you for your purchase!", Carrot.Msg_Icon.Success);
-            Application.OpenURL(this.data_wal_cur["icon"].ToString());
+            this.carrot.show_msg("Successful purchase", "Thank you for purchasing the product, you can use it for gaming or storage!", Carrot.Msg_Icon.Success);
+            wall.On_pay_one_success();
         }
 
-        if (id_product==this.carrot.shop.get_id_by_index(3))
+        if (id_product==this.carrot.shop.get_id_by_index(wall.index_buy_all_wall))
         {
             this.carrot.show_msg("Successful purchase", "The function to update the image link to save to the device has been activated, you can download any image in the application", Carrot.Msg_Icon.Success);
-            PlayerPrefs.SetInt("is_all_img", 1);
+            wall.On_pay_all_success();
         }
     }
 
@@ -319,7 +286,7 @@ public class App_wall : MonoBehaviour{
         for(int i = 0; i < arr_id.Length; i++)
         {
             string id_product = arr_id[i];
-            if (id_product == this.carrot.shop.get_id_by_index(3)) PlayerPrefs.SetInt("is_all_img", 1);
+            if (id_product == this.carrot.shop.get_id_by_index(wall.index_buy_all_wall)) wall.On_pay_all_success();
         }
     }
 
@@ -344,17 +311,7 @@ public class App_wall : MonoBehaviour{
         if(!this.carrot.is_online()){
             this.data_offline.Load_data_in_home();
         }
-        this.btn_game2_save_to_phone.SetActive(false);
-        this.btn_bk_view_save_to_phone.SetActive(false);
-        this.btn_bk_view_save.SetActive(false);
-    }
-
-    public void btn_save_image_to_phone(){
-        this.play_sound(0);
-        if(PlayerPrefs.GetFloat("is_all_img",0)==0)
-            this.buy_product(2);
-        else
-            Application.OpenURL(this.data_wal_cur["icon"].ToString());
+        wall.Show_select_game(data_img, data_new);
     }
 
     public void Scroll_on_Top()

@@ -62,6 +62,13 @@ public class Data_Offline : MonoBehaviour
             this.app.carrot.show_msg("Offline Storage", "No items have been stored offline yet!",Carrot.Msg_Icon.Alert);
         }else{
             this.box=this.app.carrot.Create_Box("Store", this.icon);
+
+            if (app.carrot.is_online())
+            {
+                Carrot_Box_Btn_Item btn_in_home=this.box.create_btn_menu_header(this.app.carrot.icon_carrot_all_category);
+                btn_in_home.set_act(() => this.show_data_in_home());
+            }
+           
             for(int i = length_data-1; i >=0; i--)
             {
                 string s_data = PlayerPrefs.GetString("data_wall_" + i,"");
@@ -113,6 +120,8 @@ public class Data_Offline : MonoBehaviour
 
     [ContextMenu("Show data in home")]
     public void show_data_in_home(){
+        if (box != null) box.close();
+        this.app.wall.close_box();
         app.Add_loading_and_clear_body();
         StartCoroutine(act_data_offline_home());
     }

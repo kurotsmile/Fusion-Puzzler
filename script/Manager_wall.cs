@@ -9,13 +9,27 @@ public class Manager_wall : MonoBehaviour
     [Header("Obj Main")]
     public App_wall app;
 
+    [Header("Obj Wall")]
+    public int index_buy_one_wall;
+    public int index_buy_all_wall;
     private Carrot_Window_Input box_inpu_search = null;
     private Carrot_Box box;
     private string s_json_data_wall="";
 
+    private Texture2D buy_texture_temp = null;
+    private IDictionary buy_data_temp = null;
+    private string buy_s_id="";
+    private bool is_buy_all_img = false;
+
+    private Carrot_Button_Item btn_save = null;
+
     public void On_load()
     {
         if (app.carrot.is_offline()) s_json_data_wall = PlayerPrefs.GetString("s_json_data_wall");
+        if (PlayerPrefs.GetInt("is_all_img", 0) == 0)
+            is_buy_all_img = false;
+        else
+            is_buy_all_img = true;
     }
 
     public void Get_list_data_background()
@@ -64,19 +78,6 @@ public class Manager_wall : MonoBehaviour
         item_category.transform.localRotation = Quaternion.identity;
 
         Panel_category p_category = item_category.GetComponent<Panel_category>();
-        p_category.txt_name.text = data["name"].ToString();
-        if (data["buy"] != null)
-        {
-            if (data["buy"].ToString() == "0")
-                p_category.txt_desc.text = "Free";
-            else
-                p_category.txt_desc.text = "Buy";
-        }
-        else
-        {
-            p_category.txt_desc.text = "Free";
-        }
-        p_category.url_img = data["icon"].ToString();
         p_category.On_load(this.app, data);
     }
 
@@ -175,19 +176,21 @@ public class Manager_wall : MonoBehaviour
             btn_del.set_label_color(Color.white);
             btn_del.set_bk_color(Color.red);
             btn_del.set_act_click(() => Act_delete(index));
+            app.btn_game2_storage.SetActive(false);
         }
         else
         {
-            Carrot_Button_Item btn_save = panel_btn.create_btn("btn_save");
+            btn_save = panel_btn.create_btn("btn_save");
             btn_save.set_icon_white(app.data_offline.icon);
             btn_save.set_label("Archive");
             btn_save.set_label_color(Color.white);
             btn_save.set_bk_color(app.carrot.color_highlight);
-            btn_save.set_act_click(() => app.data_offline.Add(data));
+            btn_save.set_act_click(() => Save_wall_to_offlie(data));
+            app.btn_game2_storage.SetActive(true);
         }
 
         Carrot_Button_Item btn_view = panel_btn.create_btn("btn_view");
-        btn_view.set_icon_white(app.carrot.icon_carrot_visible_on);
+        btn_view.set_icon_white(app.carrot.icon_carrot_visible_off);
         btn_view.set_label("View Imager");
         btn_view.set_label_color(Color.white);
         btn_view.set_bk_color(app.carrot.color_highlight);
@@ -216,5 +219,60 @@ public class Manager_wall : MonoBehaviour
         else
             this.app.play_game_2(tex, data);
         app.data_offline.Close_box();
+    }
+
+    public void close_box()
+    {
+        if (this.box != null) this.box.close();
+    }
+
+    public void Buy_wall(Texture2D tex,IDictionary data,string s_id)
+    {
+        this.buy_s_id = s_id;
+        this.buy_texture_temp = tex;
+        this.buy_data_temp = data;
+        this.app.carrot.buy_product(this.index_buy_one_wall);
+    }
+
+    public void On_pay_one_success()
+    {
+        if (this.buy_data_temp != null)
+        {
+            PlayerPrefs.SetInt("is_buy_" + this.buy_s_id,1);
+            this.Show_select_game(this.buy_texture_temp, this.buy_data_temp);
+            this.buy_data_temp = null;
+            this.buy_texture_temp = null;
+            this.buy_s_id = "";
+            this.Get_list_data_background();
+        }
+    }
+
+    public void On_pay_all_success()
+    {
+        this.is_buy_all_img = true;
+        PlayerPrefs.SetInt("is_all_img", 1);
+    }
+
+    public bool Check_Wall_used(string s_id)
+    {
+        if (this.is_buy_all_img)
+        {
+            return true;
+        }
+        else
+        {
+            if (PlayerPrefs.GetInt("is_buy_" + s_id, 0) == 1)
+                return true;
+            else
+                return false;
+        }
+    }
+
+    private void Save_wall_to_offlie(IDictionary data)
+    {
+        app.carrot.play_sound_click();
+        app.carrot.play_vibrate();
+        app.data_offline.Add(data);
+        if (btn_save != null) Destroy(btn_save.gameObject);
     }
 }
