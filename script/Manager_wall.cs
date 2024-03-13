@@ -20,6 +20,7 @@ public class Manager_wall : MonoBehaviour
 
     public void Get_list_data_background()
     {
+        this.app.Add_loading_and_clear_body();
         if (this.s_json_data_wall == "")
         {
             StructuredQuery q = new("background");

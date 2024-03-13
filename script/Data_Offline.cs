@@ -67,6 +67,7 @@ public class Data_Offline : MonoBehaviour
                 string s_data = PlayerPrefs.GetString("data_wall_" + i,"");
                 if (s_data != "")
                 {
+                    var index = i;
                     IDictionary data_img = (IDictionary) Json.Deserialize(s_data);
                     data_img["index"] = i;
                     string s_id_wall = "wall" + data_img["id"].ToString();
@@ -89,6 +90,11 @@ public class Data_Offline : MonoBehaviour
                     btn_game2.set_color(app.carrot.color_highlight);
                     btn_game2.set_act(() => play_game(tex, data_img, false));
 
+                    Carrot_Box_Btn_Item btn_del = item_img.create_item();
+                    btn_del.set_icon(app.carrot.sp_icon_del_data);
+                    btn_del.set_color(Color.red);
+                    btn_del.set_act(() => this.delete(index));
+
                     item_img.set_act(() => app.wall.Show_select_game(tex, data_img));
                 }
             }
@@ -107,6 +113,7 @@ public class Data_Offline : MonoBehaviour
 
     [ContextMenu("Show data in home")]
     public void show_data_in_home(){
+        app.Add_loading_and_clear_body();
         StartCoroutine(act_data_offline_home());
     }
 

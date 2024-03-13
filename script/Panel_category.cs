@@ -19,7 +19,7 @@ public class Panel_category : MonoBehaviour {
 		this.data=data_wall;
 		this.texData=app.carrot.get_tool().get_texture2D_to_playerPrefs(s_id_wall);
 		if (this.texData != null)
-			this.img_bk.sprite = app.carrot.get_tool().Texture2DtoSprite(this.texData);
+			this.img_bk.sprite = this.Resize_img(this.texData);
 		else
 			this.app.carrot.get_img_and_save_playerPrefs(url_img, null, s_id_wall, this.On_load_image_done);
     }
@@ -39,7 +39,20 @@ public class Panel_category : MonoBehaviour {
 	public void On_load_image_done(Texture2D tex)
 	{
 		this.texData = tex;
-		Texture2D texPic = app.carrot.get_tool().ResampleAndCrop(tex, 280, 100);
-		this.img_bk.sprite = app.carrot.get_tool().Texture2DtoSprite(texPic);
+        this.img_bk.sprite =Resize_img(tex);
 	}
+
+	private Sprite Resize_img(Texture2D tex)
+	{
+        Texture2D texPic;
+        if (app.app_scene.get_status_portrait())
+        {
+            texPic = app.carrot.get_tool().ResampleAndCrop(tex, 280, 100);
+        }
+        else
+        {
+            texPic = app.carrot.get_tool().ResampleAndCrop(tex, 480, 100);
+        }
+		return app.carrot.get_tool().Texture2DtoSprite(texPic);
+    }
 }

@@ -13,6 +13,7 @@ public class App_wall : MonoBehaviour{
     public Carrot.Carrot carrot;
     public Manager_wall wall;
     public Data_Offline data_offline;
+    public Carrot_DeviceOrientationChange app_scene;
 
     [Header("Obj App ui")]
 	public GameObject panel_menu;
@@ -21,6 +22,7 @@ public class App_wall : MonoBehaviour{
 
 	public GameObject prefab_category;
     public GameObject prefab_title;
+    public GameObject prefab_loading;
 
 	public Transform area_body;
 	public Skybox skyBk;
@@ -374,6 +376,21 @@ public class App_wall : MonoBehaviour{
         obj_title.transform.localRotation = Quaternion.identity;
 
         obj_title.GetComponent<Carrot_Box_Item>().txt_name.text = s_title;
+    }
+
+    public void add_obj_loading()
+    {
+        GameObject obj_title = Instantiate(this.prefab_loading);
+        obj_title.transform.SetParent(this.area_body);
+        obj_title.transform.localScale = new Vector3(1f, 1f, 0f);
+        obj_title.transform.localPosition = Vector3.zero;
+        obj_title.transform.localRotation = Quaternion.identity;
+    }
+
+    public void Add_loading_and_clear_body()
+    {
+        carrot.clear_contain(this.area_body);
+        this.add_obj_loading();
     }
 
     [ContextMenu("Test Updload scores Game 1")]
