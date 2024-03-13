@@ -1,6 +1,7 @@
 using Carrot;
 using System.Collections;
 using System.Collections.Generic;
+using TreeEditor;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -10,6 +11,7 @@ public class Manager_wall : MonoBehaviour
     public App_wall app;
 
     private Carrot_Window_Input box_inpu_search = null;
+    private Carrot_Box box;
     private string s_json_data_wall="";
 
     public void On_load()
@@ -140,5 +142,35 @@ public class Manager_wall : MonoBehaviour
         {
             app.carrot.hide_loading();
         }
+    }
+
+    public void Show_select_game(Texture2D tex,IDictionary data)
+    {
+        app.play_sound(0);
+
+        box = app.carrot.Create_Box();
+        box.set_icon(app.carrot.icon_carrot_game);
+        box.set_title("Select Game");
+
+        Carrot.Carrot_Box_Item item_game_puzzler = box.create_item("game_puzzler");
+        item_game_puzzler.set_title("Puzzler");
+        item_game_puzzler.set_tip("The type of game that arranges the order of given puzzle pieces");
+        item_game_puzzler.set_icon(app.data_offline.icon_game1);
+        item_game_puzzler.set_act(() => this.play_game(tex, data, true));
+        
+        Carrot.Carrot_Box_Item item_game_jigsaw = box.create_item("game_jigsaw");
+        item_game_jigsaw.set_title("jigsaw");
+        item_game_jigsaw.set_tip("The type of puzzle you have to put together piece by piece");
+        item_game_jigsaw.set_icon(app.data_offline.icon_game2);
+        item_game_jigsaw.set_act(() => this.play_game(tex, data,false));
+    }
+
+    public void play_game(Texture2D tex,IDictionary data,bool is_game_1)
+    {
+        if (box != null) box.close();
+        if (is_game_1)
+            this.app.play_game_1(tex, data);
+        else
+            this.app.play_game_2(tex, data);
     }
 }

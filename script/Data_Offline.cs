@@ -35,6 +35,7 @@ public class Data_Offline : MonoBehaviour
 
     public void Add_data(IDictionary data,UnityAction after_add_act=null)
     {
+        Debug.Log(Json.Serialize(data));
         PlayerPrefs.SetString("data_wall_" + this.length_data, Json.Serialize(data));
         this.length_data++;
         PlayerPrefs.SetInt("length_data", length_data);
@@ -61,6 +62,7 @@ public class Data_Offline : MonoBehaviour
                 string s_data = PlayerPrefs.GetString("data_wall_" + i,"");
                 if (s_data != "")
                 {
+                    Debug.Log(s_data);
                     IDictionary data_img = (IDictionary) Json.Deserialize(s_data);
                     string s_id_wall = "wall" + data_img["id"].ToString();
                     Carrot_Box_Item item_img = box.create_item("item_img_" + i);

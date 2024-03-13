@@ -168,7 +168,7 @@ public class App_wall : MonoBehaviour{
 	[ContextMenu ("delete data")]
 	public void delete_all_data(){
         this.carrot.stop_all_act();
-        this.Start();
+        this.data_offline.On_load();
 	}
 
     public void show_more_app()
@@ -236,7 +236,6 @@ public class App_wall : MonoBehaviour{
         game2.GetComponent<ST_PuzzleDisplay>().Height =h;
         this.data_texture = data_img;
         game2.GetComponent<ST_PuzzleDisplay>().Start_game();
-        this.carrot.close_all_window();
         this.panel_game2.SetActive(true);
         this.play_sound(0);
     }
