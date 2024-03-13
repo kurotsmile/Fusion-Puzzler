@@ -9,7 +9,6 @@ public class Data_Offline : MonoBehaviour
     public Sprite icon;
     public Sprite icon_history;
     public Sprite icon_rank;
-    public Sprite[] icon_rank_index;
     public Sprite icon_game1;
     public Sprite icon_game2;
     int length_data = 0;
@@ -17,8 +16,7 @@ public class Data_Offline : MonoBehaviour
     private List<Data_offline_item> list_item;
     public GameObject prefab_data_offline_item;
     public GameObject prefab_data_offline_home;
-    public GameObject prefab_item_history;
-    public GameObject prefab_item_rank;
+
     public void Start()
     {
         this.carrot=this.GetComponent<App_wall>().carrot;
@@ -58,7 +56,7 @@ public class Data_Offline : MonoBehaviour
                         load_s01_texture = new Texture2D(1, 1);
                         load_s01_texture.LoadImage(bytes);
                         item_img.data_img=load_s01_texture;
-                        load_s01_texture=this.GetComponent<App_wall>().ResampleAndCrop(load_s01_texture,60,60);
+                        load_s01_texture=this.GetComponent<App_wall>().ResizeAndCrop(load_s01_texture,60,60);
                         item_img.icon_thumb = Sprite.Create(load_s01_texture, new Rect(0.0f, 0.0f, load_s01_texture.width, load_s01_texture.height), new Vector2(0.5f, 0.5f), 100.0f);
                         item_img.url=url_data;
                     }

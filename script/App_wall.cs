@@ -2,12 +2,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.Advertisements;
 using UnityEngine.UI;
 using Carrot;
 
 public class App_wall : MonoBehaviour{
+
+    [Header("Config Api")]
+    public string key_api_searchcustomer = "";
+    public string key_search_engines = "";
+
+    [Header("Obj Main")]
     public Carrot.Carrot carrot;
+    public Manager_wall wall;
+    public Data_Offline data_offline;
 
     [Header("Obj App ui")]
 	public GameObject panel_menu;
@@ -24,10 +31,7 @@ public class App_wall : MonoBehaviour{
 	private Texture2D data_texture;
 	public Texture texture_Default;
 
-	private string cat_current_id="0";
-	private string bk_current_id="";
 	public RawImage img_bk_view;
-	private int count_ads=0;
     public GameObject game2_Tile;
 
     [Header("Obj View")]
@@ -43,28 +47,31 @@ public class App_wall : MonoBehaviour{
     private string url_bk_view="";
     [Header("Sound Game")]
     public AudioSource[] sound;
-    private bool is_ShowRewardedAdMostrarBG=false;
-    private bool is_ActivarAyudaBackgroundAceptado=false;
 
     private int game2_size=0;
 
 	void Start () {
+
         this.carrot.Load_Carrot(this.check_app_exit);
-        this.carrot.shop.onCarrotPaySuccess = this.onBySuccessPayCarrot;
-        this.carrot.shop.onCarrotRestoreSuccess = this.onRestoreSuccessPayCarrot;
+        this.carrot.shop.onCarrotPaySuccess += this.onBySuccessPayCarrot;
+        this.carrot.shop.onCarrotRestoreSuccess += this.onRestoreSuccessPayCarrot;
+
+        this.carrot.game.load_bk_music(this.sound[8]);
 
 		this.panel_menu.SetActive (false);
 		this.panel_bk.SetActive (false);
         this.panel_game2.gameObject.SetActive(false);
         this.panel_game2_win.SetActive(false);
+
+        this.wall.On_load();
 	}
 
     public void load_app_online(){
-        this.Get_list_data_background();
+        this.wall.Get_list_data_background();
     }
 
     public void load_app_offline(){
-        this.GetComponent<Data_Offline>().show_data_in_home();
+        this.data_offline.show_data_in_home();
     }
 
     private void check_app_exit()
@@ -90,76 +97,8 @@ public class App_wall : MonoBehaviour{
     public void refresh_home()
     {
         this.play_sound(3);
-        this.StopAllCoroutines();
-        this.carrot.stop_all_act();
-        
-        //this.carrot.send(this.carrot.frm_act("list_category"),act_get_list_category);
+        this.wall.Get_list_data_background();
         this.check_and_show_ads();
-    }
-
-    private void Get_list_data_background()
-    {
-        StructuredQuery q = new("background");
-        q.Set_limit(20);
-        carrot.server.Get_doc(q.ToJson(), Act_get_list_background_done);
-    }
-
-	private void Act_get_list_background_done(string s_data){
-        Fire_Collection fc = new(s_data);
-        if (!fc.is_null)
-        {
-            this.carrot.clear_contain(this.area_body);
-            for (int i = 0; i <fc.fire_document.Length; i++)
-            {
-                IDictionary item_bk =fc.fire_document[i].Get_IDictionary();
-                GameObject item_category = Instantiate(prefab_category);
-                item_category.name = "item_category_"+i;
-                item_category.transform.SetParent(area_body);
-                item_category.transform.localPosition = new Vector3(0f, 0f, 0f);
-                item_category.transform.localScale = new Vector3(1f, 1f, 1f);
-                item_category.GetComponent<Panel_category>().txt_name.text = item_bk["name"].ToString();
-                if (item_bk["buy"] != null)
-                {
-                    if (item_bk["buy"].ToString()=="0")
-                        item_category.GetComponent<Panel_category>().txt_desc.text = "Free";
-                    else
-                        item_category.GetComponent<Panel_category>().txt_desc.text = "Buy";
-                }
-                else
-                {
-                    item_category.GetComponent<Panel_category>().txt_desc.text ="Free";
-                }
-                item_category.GetComponent<Panel_category>().url_img = item_bk["icon"].ToString();
-                carrot.get_img(item_bk["icon"].ToString(), item_category.GetComponent<Panel_category>().img_bk);
-            }
-            this.GetComponent<ControlUI>().panelInicial.GetComponent<ScrollRect>().verticalNormalizedPosition = 1f;
-        }
-    }
-
-	public void get_bk_in_category(string cat_id){
-		this.cat_current_id = cat_id;
-		WWWForm frm = this.carrot.frm_act("get_background");
-		frm.AddField ("id_cat", cat_id);
-		if (this.bk_current_id != "") {
-			frm.AddField ("id_bk", this.bk_current_id);
-		}
-       // this.carrot.send(frm,act_get_bk_in_category);
-	}
-
-    private void act_get_bk_in_category(string s_data){
-        IDictionary data = (IDictionary)Carrot.Json.Deserialize (s_data);
-		StartCoroutine (download_image_bk (data["url"].ToString()));
-    }
-
-    public void btn_view_next()
-    {
-        this.count_cur_bk++;
-        if (this.count_cur_bk >= this.list_bk_view.Count)
-            this.next_bk();
-        else
-            StartCoroutine(this.download_image_bk(this.list_bk_view[this.count_cur_bk]));
-
-        this.check_show_hide_btn_view();
     }
 
     public void btn_view_prev()
@@ -191,7 +130,6 @@ public class App_wall : MonoBehaviour{
             www.SendWebRequest();
             while (!www.isDone)
             {
-               // this.carrot.slider_loading.value = www.downloadProgress;
                 yield return null;
             }
 
@@ -236,20 +174,6 @@ public class App_wall : MonoBehaviour{
         StartCoroutine(this.download_image_bk(url));
     }
 
-	public void show_bk_in_category(string id_category){
-        this.list_bk_view = new List<string>();
-        this.count_cur_bk = 0;
-        this.play_sound(0);
-        this.get_bk_in_category(id_category);
-	}
-
-	public void show_list_category(){
-        this.play_sound(0);
-        this.StopAllCoroutines ();
-		this.get_bk_in_category("");
-		this.area_body.parent.gameObject.SetActive (true);
-	}
-
 	public void play_game_in_category(string url_list){
         this.play_sound(0);
         this.area_body.parent.gameObject.SetActive (true);
@@ -286,12 +210,6 @@ public class App_wall : MonoBehaviour{
         this.carrot.close();
     } 
 
-	public void next_bk(){
-        this.play_sound(0);
-        this.get_bk_in_category (this.cat_current_id);
-        this.check_and_show_ads();
-	}
-
 	public void save_bk(){
         this.play_sound(0);
 	}
@@ -299,7 +217,7 @@ public class App_wall : MonoBehaviour{
     public void play_game_2_bk()
     {
         this.play_sound(0);
-        this.show_game_2(this.ResampleAndCrop(this.data_texture,300,300));
+        this.show_game_2(this.ResizeAndCrop(this.data_texture,300,300));
         this.panel_menu.SetActive(false);
         this.panel_bk.SetActive(false);
     }
@@ -366,9 +284,7 @@ public class App_wall : MonoBehaviour{
     public void search()
     {
         this.play_sound(0);
-        WWWForm frm_search = this.carrot.frm_act("search");
-        //frm_search.AddField("key_search",this.carrot.inp_search.text);
-        //this.carrot.show_search(frm_search,act_get_list_search,"You can search the display photo theme to your liking");
+        this.wall.Show_Search();
     }
 
     public void act_get_list_search(string s_data)
@@ -414,7 +330,7 @@ public class App_wall : MonoBehaviour{
 
     public void play_game_2_in_offline_and_view_bk(Texture2D data_img,string url_download){
         this.check_show_btn_save_phone(url_download,true);
-        this.show_game_2_customer(this.ResampleAndCrop(data_img,300,300), 3, 3);
+        this.show_game_2_customer(this.ResizeAndCrop(data_img,300,300), 3, 3);
     }
 
     private void check_show_btn_save_phone(string s_url_download,bool is_storager){
@@ -551,64 +467,23 @@ public class App_wall : MonoBehaviour{
     }
 
     private void check_and_show_ads(){
-        this.count_ads++;
-        if (this.count_ads >= 6)
-        {
-#if UNITY_STANDALONE
-            this.carrot.show_ads();
-#elif UNITY_WSA
-            Vungle.playAd(this.ads_id_trunggiang_Vungle);
-#else
-            Advertisement.Show("video");
-#endif
-            this.count_ads = 0;
-        }
+        this.carrot.ads.show_ads_Interstitial();
     }
-
-    public void OnUnityAdsReady(string placementId)
-    {
-
-    }
-
-    public void OnUnityAdsDidError(string message)
-    {
-
-    }
-
-    public void OnUnityAdsDidStart(string placementId)
-    {
-
-    }
-
-    public void OnUnityAdsDidFinish(string placementId, ShowResult showResult)
-    {
-        if (showResult == ShowResult.Finished) {
-            if(this.is_ShowRewardedAdMostrarBG)this.GetComponent<ControlUI>().SepararPiezasDeBordeAceptado();
-            if(this.is_ActivarAyudaBackgroundAceptado) this.GetComponent<ControlUI>().ActivarAyudaBackgroundAceptado();
-        }
-    }
-
-    public void ShowRewardedAdSepararPiezas()
-	{
-        this.is_ShowRewardedAdMostrarBG=false;
-		Advertisement.Show("rewardedVideo");
-	}
 
     public void ShowAd(){
-        this.is_ShowRewardedAdMostrarBG=false;
-        this.is_ActivarAyudaBackgroundAceptado=false;
         carrot.ads.show_ads_Interstitial();
 	}
 
-    public  Texture2D ResampleAndCrop(Texture2D source, int targetWidth, int targetHeight)
+    public Texture2D ResizeAndCrop(Texture2D source, int targetWidth, int targetHeight)
     {
+        if (source == null) return null;
          int sourceWidth = source.width;
          int sourceHeight = source.height;
          float sourceAspect = (float)sourceWidth / sourceHeight;
          float targetAspect = (float)targetWidth / targetHeight;
          int xOffset = 0;
          int yOffset = 0;
-         float factor = 1;
+         float factor = 0f;
          if (sourceAspect > targetAspect)
          { 
              factor = (float)targetHeight / sourceHeight;
@@ -648,10 +523,10 @@ public class App_wall : MonoBehaviour{
 
     private void act_show_img_in_camera(Texture2D data_img){
         this.show_view_in_offline(data_img,"camera_photo");
-        this.GetComponent<Data_Offline>().add_data("camera_photo",data_img.EncodeToPNG(),false);
+        this.data_offline.add_data("camera_photo",data_img.EncodeToPNG(),false);
         if(!this.carrot.is_online()){
-            this.GetComponent<Data_Offline>().load_data();
-            this.GetComponent<Data_Offline>().Load_data_in_home();
+            this.data_offline.load_data();
+            this.data_offline.Load_data_in_home();
         }
         this.btn_game2_save_to_phone.SetActive(false);
         this.btn_bk_view_save_to_phone.SetActive(false);
@@ -666,4 +541,13 @@ public class App_wall : MonoBehaviour{
             Application.OpenURL(this.url_bk_view);
     }
 
+    public void Scroll_on_Top()
+    {
+        this.GetComponent<ControlUI>().panelInicial.GetComponent<ScrollRect>().verticalNormalizedPosition = 1f;
+    }
+
+    public void Act_server_fail(string s_error)
+    {
+        this.carrot.show_msg("Error", s_error, Msg_Icon.Error);
+    }
 }

@@ -586,7 +586,7 @@ public class ControlUI : MonoBehaviour{
 			SepararPiezasDeBordeAceptado ();
 		} else if (descargarImagenes.CheckInternet ()) {
 			if (PlayerPrefs.GetInt ("is_buy_ads", 0) == 0){
-				this.GetComponent<App_wall>().ShowRewardedAdSepararPiezas ();
+				this.GetComponent<App_wall>().carrot.ads.show_ads_Rewarded();
 			}else{
 				this.SepararPiezasDeBordeAceptado();
 			}
