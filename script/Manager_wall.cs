@@ -1,8 +1,8 @@
 using Carrot;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.UI;
 
 public class Manager_wall : MonoBehaviour
 {
@@ -33,6 +33,7 @@ public class Manager_wall : MonoBehaviour
 
     private void Act_get_list_background_done(string s_data)
     {
+        this.s_json_data_wall = s_data;
         PlayerPrefs.SetString("s_json_data_wall", s_data);
         this.Act_Show_list_background_by_data(s_data);
     }
@@ -43,11 +44,10 @@ public class Manager_wall : MonoBehaviour
         if (!fc.is_null)
         {
             this.app.carrot.clear_contain(this.app.area_body);
-            for (int i = 0; i < fc.fire_document.Length; i++)
-            {
-                IDictionary item_bk = fc.fire_document[i].Get_IDictionary();
-                this.Add_item_to_list(item_bk);
-            }
+            IList<IDictionary> list_data_bk = new List<IDictionary>();
+            for (int i = 0; i < fc.fire_document.Length; i++) list_data_bk.Add(fc.fire_document[i].Get_IDictionary());
+            list_data_bk=app.carrot.get_tool().Shuffle_Ilist(list_data_bk);
+            for (int i = 0; i < list_data_bk.Count; i++) this.Add_item_to_list(list_data_bk[i]);
             this.app.Scroll_on_Top();
         }
     }
@@ -75,7 +75,7 @@ public class Manager_wall : MonoBehaviour
             p_category.txt_desc.text = "Free";
         }
         p_category.url_img = data["icon"].ToString();
-        p_category.On_load(this.app, data["id"].ToString());
+        p_category.On_load(this.app, data);
     }
 
     public void Show_Search()
@@ -99,12 +99,13 @@ public class Manager_wall : MonoBehaviour
             app.carrot.hide_loading();
             if (this.box_inpu_search != null) this.box_inpu_search.close();
             this.app.carrot.clear_contain(this.app.area_body);
+            this.app.add_obj_title(s_key);
             IDictionary data = (IDictionary)Json.Deserialize(www.downloadHandler.text);
             IList list_pic = (IList)data["items"];
 
             for (int i = 0; i < list_pic.Count; i++)
             {
-                string url_pic;
+                string url_pic = "";
                 IDictionary pic = (IDictionary)list_pic[i];
                 IDictionary pagemap = (IDictionary) pic["pagemap"];
                 IList metatags = (IList) pagemap["metatags"];
@@ -117,9 +118,12 @@ public class Manager_wall : MonoBehaviour
                 }
                 else
                 {
-                    IList cse_thumbnail = (IList) pagemap["cse_thumbnail"];
-                    IDictionary thumb =(IDictionary) cse_thumbnail[0];
-                    url_pic = thumb["src"].ToString();
+                    if (pagemap["cse_thumbnail"] != null)
+                    {
+                        IList cse_thumbnail = (IList)pagemap["cse_thumbnail"];
+                        IDictionary thumb = (IDictionary)cse_thumbnail[0];
+                        url_pic = thumb["src"].ToString();
+                    }
                 }
 
                 if (url_pic != "")

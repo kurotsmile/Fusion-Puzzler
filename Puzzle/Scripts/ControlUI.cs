@@ -854,7 +854,7 @@ public class ControlUI : MonoBehaviour{
 
 	public void ShowRewardedAdExtra()
 	{
-		this.GetComponent<App_wall>().ShowAd();
+		this.GetComponent<App_wall>().carrot.ads.show_ads_Interstitial();
 	}
 
 	void ActualizarBotonesPause(){
