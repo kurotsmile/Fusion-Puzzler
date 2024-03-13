@@ -41,6 +41,7 @@ public class App_wall : MonoBehaviour{
 
     private int game2_size=0;
     private IDictionary data_wal_cur;
+    private bool is_play_game1 = false;
 
 	void Start () {
 
@@ -115,6 +116,7 @@ public class App_wall : MonoBehaviour{
         this.panel_game2.SetActive(false);
         this.carrot.ads.show_ads_Interstitial();
         this.clear_game_2();
+        if(this.is_play_game1) this.carrot.ads.create_banner_ads();
     }
 
 	public void play_game_cur_bk(){
@@ -129,6 +131,8 @@ public class App_wall : MonoBehaviour{
 
     public void play_game_1(Texture data_img,IDictionary data)
     {
+        this.is_play_game1 = true;
+        carrot.ads.Destroy_Banner_Ad();
         this.data_wal_cur = data;
         this.data_texture = (Texture2D)data_img;
         this.play_game_cur_bk();
@@ -147,6 +151,7 @@ public class App_wall : MonoBehaviour{
 
     public void play_game_2(Texture2D data_img,IDictionary data)
     {
+        this.is_play_game1 = false;
         this.data_wal_cur = data;
         this.play_sound(0);
         this.show_game_2(data_img);
@@ -331,7 +336,8 @@ public class App_wall : MonoBehaviour{
         data_new["id"] = s_id_new_photo;
         data_new["name"] = s_id_new_photo;
         data_new["buy"] = "0";
-        data_new["icon"] = "";
+        data_new["icon"] = "Camera";
+        carrot.get_tool().PlayerPrefs_Save_by_data("wall"+s_id_new_photo, data_img.EncodeToPNG());
         this.data_offline.Add_data(data_new);
         if(!this.carrot.is_online()){
             this.data_offline.Load_data_in_home();

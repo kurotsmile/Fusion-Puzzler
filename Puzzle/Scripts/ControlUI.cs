@@ -379,7 +379,8 @@ public class ControlUI : MonoBehaviour{
 		panelPreGame.SetActive (false);
 		panelInGame.SetActive (false);
 		panelComplete.SetActive (false);
-	}
+		this.GetComponent<App_wall>().carrot.ads.create_banner_ads();
+    }
 
 	public void SeleccionarImagen(int numImagen){
 		this.GetComponent<App_wall>().play_sound(0);
@@ -801,7 +802,10 @@ public class ControlUI : MonoBehaviour{
 			completeInfo.text = "Difficulty level: " + (ultimaDificultadSeleccionada + 1).ToString () + "\n\nTime: " + horas + minutos + segundos + letraTiempo;
 		}
 		analiticas.DificultadCompletada (ultimaDificultadSeleccionada + 1);
-	}
+
+        int scrore_add = (ultimaDificultadSeleccionada + 1) * 2;
+        GameObject.Find("app_wall").GetComponent<Data_Offline>().add_history(scrore_add, 0);
+    }
 
 	public void VolverAMenuTrasCompletar(){
 		this.GetComponent<App_wall>().play_sound(0);
@@ -874,10 +878,4 @@ public class ControlUI : MonoBehaviour{
 			tickGuia.SetActive (false);
 		#endif
 	}
-
-	public void btn_add_socres(){
-		int scrore_add=(ultimaDificultadSeleccionada+1)*2;
-		GameObject.Find("app_wall").GetComponent<Data_Offline>().add_history(scrore_add,0);
-	}
-
 }

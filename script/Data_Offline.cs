@@ -16,8 +16,6 @@ public class Data_Offline : MonoBehaviour
     public Sprite icon_game2;
     int length_data = 0;
     int length_history = 0;
-    public GameObject prefab_data_offline_item;
-    public GameObject prefab_data_offline_home;
     private Carrot_Box box;
 
     public void On_load()
@@ -35,17 +33,24 @@ public class Data_Offline : MonoBehaviour
 
     public void Add_data(IDictionary data,UnityAction after_add_act=null)
     {
-        Debug.Log(Json.Serialize(data));
+        data["type"] = "offline";
         PlayerPrefs.SetString("data_wall_" + this.length_data, Json.Serialize(data));
         this.length_data++;
         PlayerPrefs.SetInt("length_data", length_data);
         after_add_act?.Invoke();
     }
 
-    public void delete(int index,UnityAction act_after_delete)
+    public void delete(int index,UnityAction act_after_delete=null)
     {
+        string s_data = PlayerPrefs.GetString("data_wall_" + index, "");
+        if(s_data!="") {
+            IDictionary data_img = (IDictionary)Json.Deserialize(s_data);
+            string s_id = data_img["id"].ToString();
+            PlayerPrefs.DeleteKey("wall" + s_id);
+        }
         PlayerPrefs.DeleteKey("data_wall_" + index);
         this.app.play_sound(5);
+        if (box != null) box.close();
         act_after_delete?.Invoke();
     }
 
@@ -62,23 +67,45 @@ public class Data_Offline : MonoBehaviour
                 string s_data = PlayerPrefs.GetString("data_wall_" + i,"");
                 if (s_data != "")
                 {
-                    Debug.Log(s_data);
                     IDictionary data_img = (IDictionary) Json.Deserialize(s_data);
+                    data_img["index"] = i;
                     string s_id_wall = "wall" + data_img["id"].ToString();
                     Carrot_Box_Item item_img = box.create_item("item_img_" + i);
-                    Sprite sp_icon = app.carrot.get_tool().get_sprite_to_playerPrefs(s_id_wall);
-                    item_img.set_title("Image " + i);
-                    item_img.set_tip(data_img["name"].ToString());
-                    if (sp_icon != null)
-                        item_img.set_icon_white(sp_icon);
+                    Texture2D tex = app.carrot.get_tool().get_texture2D_to_playerPrefs(s_id_wall);
+                    item_img.set_title(data_img["name"].ToString());
+                    item_img.set_tip(data_img["icon"].ToString());
+                    if (tex != null)
+                        item_img.set_icon_white(app.carrot.get_tool().Texture2DtoSprite(tex));
                     else
                         app.carrot.get_img_and_save_playerPrefs(data_img["url"].ToString(), item_img.img_icon, s_id_wall);
+
+                    Carrot_Box_Btn_Item btn_game1 = item_img.create_item();
+                    btn_game1.set_icon(icon_game1);
+                    btn_game1.set_color(app.carrot.color_highlight);
+                    btn_game1.set_act(() => play_game(tex, data_img, true));
+
+                    Carrot_Box_Btn_Item btn_game2 = item_img.create_item();
+                    btn_game2.set_icon(icon_game2);
+                    btn_game2.set_color(app.carrot.color_highlight);
+                    btn_game2.set_act(() => play_game(tex, data_img, false));
+
+                    item_img.set_act(() => app.wall.Show_select_game(tex, data_img));
                 }
             }
             this.box.update_color_table_row();
         }
     }
 
+    private void play_game(Texture2D tex,IDictionary data,bool is_game_1)
+    {
+        if (box != null) box.close();
+        if (is_game_1)
+            this.app.play_game_1(tex, data);
+        else
+            this.app.play_game_2(tex, data);
+    }
+
+    [ContextMenu("Show data in home")]
     public void show_data_in_home(){
         StartCoroutine(act_data_offline_home());
     }
@@ -91,14 +118,19 @@ public class Data_Offline : MonoBehaviour
     }
 
     public void Load_data_in_home(){
-        this.GetComponent<App_wall>().carrot.clear_contain(this.GetComponent<App_wall>().area_body);
-        for(int i = 0; i < this.length_data; i++)
+        this.app.carrot.clear_contain(this.app.area_body);
+        this.app.add_obj_title("Archived photos");
+        for (int i = length_data - 1; i >= 0; i--)
         {
-            GameObject item_data_img = Instantiate(this.prefab_data_offline_home);
-            item_data_img.transform.SetParent(this.GetComponent<App_wall>().area_body);
-            item_data_img.transform.localPosition = new Vector3(item_data_img.transform.localPosition.x, item_data_img.transform.localPosition.y, 0f);
-            item_data_img.transform.localScale = new Vector3(1f, 1f, 1f);
+            string s_data = PlayerPrefs.GetString("data_wall_" + i, "");
+            if (s_data != "")
+            {
+                IDictionary data_img = (IDictionary)Json.Deserialize(s_data);
+                data_img["index"] = i;
+                app.wall.Add_item_to_list(data_img);
+            }
         }
+        app.Scroll_on_Top();
     }
 
     public void add_history(int score,int type){
@@ -107,7 +139,7 @@ public class Data_Offline : MonoBehaviour
         PlayerPrefs.SetString("h_date_"+this.length_history,System.DateTime.Now.ToString("HH:mm dd MMMM, yyyy"));
         this.length_history++;
         PlayerPrefs.SetInt("length_history",length_history);
-        this.app.carrot.game.update_scores_player(get_total_scores());
+        this.app.carrot.game.update_scores_player(get_total_scores(), type);
     }
 
     private int get_total_scores(){
@@ -142,5 +174,10 @@ public class Data_Offline : MonoBehaviour
 
     public void show_list_rank(){
         this.app.carrot.game.Show_List_Top_player();
+    }
+
+    public void Close_box()
+    {
+        if (box != null) box.close();
     }
 }

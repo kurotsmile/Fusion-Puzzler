@@ -233,6 +233,7 @@ public class ST_PuzzleDisplay : MonoBehaviour
 			GameObject.Find("app_wall").GetComponent<Data_Offline>().add_history(Width,1);
 			GameObject.Find("app_wall").GetComponent<App_wall>().play_sound(1);
             GameObject.Find("app_wall").GetComponent<App_wall>().panel_game2_win.SetActive(true);
+			GameObject.Find("app_wall").GetComponent<App_wall>().carrot.play_vibrate();
         }
 
 		yield return null;

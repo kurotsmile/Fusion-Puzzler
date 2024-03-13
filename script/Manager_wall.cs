@@ -1,7 +1,6 @@
 using Carrot;
 using System.Collections;
 using System.Collections.Generic;
-using TreeEditor;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -54,7 +53,7 @@ public class Manager_wall : MonoBehaviour
         }
     }
 
-    private void Add_item_to_list(IDictionary data)
+    public void Add_item_to_list(IDictionary data)
     {
         GameObject item_category = Instantiate(app.prefab_category);
         item_category.name = "item_category_" + data["id"].ToString();
@@ -146,23 +145,66 @@ public class Manager_wall : MonoBehaviour
 
     public void Show_select_game(Texture2D tex,IDictionary data)
     {
+        app.carrot.ads.show_ads_Interstitial();
         app.play_sound(0);
 
         box = app.carrot.Create_Box();
         box.set_icon(app.carrot.icon_carrot_game);
         box.set_title("Select Game");
 
-        Carrot.Carrot_Box_Item item_game_puzzler = box.create_item("game_puzzler");
-        item_game_puzzler.set_title("Puzzler");
-        item_game_puzzler.set_tip("The type of game that arranges the order of given puzzle pieces");
-        item_game_puzzler.set_icon(app.data_offline.icon_game1);
-        item_game_puzzler.set_act(() => this.play_game(tex, data, true));
-        
         Carrot.Carrot_Box_Item item_game_jigsaw = box.create_item("game_jigsaw");
         item_game_jigsaw.set_title("jigsaw");
         item_game_jigsaw.set_tip("The type of puzzle you have to put together piece by piece");
-        item_game_jigsaw.set_icon(app.data_offline.icon_game2);
-        item_game_jigsaw.set_act(() => this.play_game(tex, data,false));
+        item_game_jigsaw.set_icon(app.data_offline.icon_game1);
+        item_game_jigsaw.set_act(() => this.play_game(tex, data,true));
+
+        Carrot.Carrot_Box_Item item_game_puzzler = box.create_item("game_puzzler");
+        item_game_puzzler.set_title("Puzzler");
+        item_game_puzzler.set_tip("The type of game that arranges the order of given puzzle pieces");
+        item_game_puzzler.set_icon(app.data_offline.icon_game2);
+        item_game_puzzler.set_act(() => this.play_game(tex, data, false));
+
+        Carrot_Box_Btn_Panel panel_btn = box.create_panel_btn();
+        if (data["index"] != null)
+        {
+            int index = int.Parse(data["index"].ToString());
+            Carrot_Button_Item btn_del = panel_btn.create_btn("btn_delete");
+            btn_del.set_icon_white(app.carrot.sp_icon_del_data);
+            btn_del.set_label("Delete");
+            btn_del.set_label_color(Color.white);
+            btn_del.set_bk_color(Color.red);
+            btn_del.set_act_click(() => Act_delete(index));
+        }
+        else
+        {
+            Carrot_Button_Item btn_save = panel_btn.create_btn("btn_save");
+            btn_save.set_icon_white(app.data_offline.icon);
+            btn_save.set_label("Archive");
+            btn_save.set_label_color(Color.white);
+            btn_save.set_bk_color(app.carrot.color_highlight);
+            btn_save.set_act_click(() => app.data_offline.Add(data));
+        }
+
+        Carrot_Button_Item btn_view = panel_btn.create_btn("btn_view");
+        btn_view.set_icon_white(app.carrot.icon_carrot_visible_on);
+        btn_view.set_label("View Imager");
+        btn_view.set_label_color(Color.white);
+        btn_view.set_bk_color(app.carrot.color_highlight);
+        btn_view.set_act_click(() => app.carrot.camera_pro.show_photoshop(tex));
+
+        Carrot_Button_Item btn_close = panel_btn.create_btn("btn_close");
+        btn_close.set_icon_white(app.carrot.icon_carrot_cancel);
+        btn_close.set_label("Close");
+        btn_close.set_label_color(Color.white);
+        btn_close.set_bk_color(app.carrot.color_highlight);
+        btn_close.set_act_click(() => box.close());
+    }
+
+    private void Act_delete(int index)
+    {
+        app.data_offline.delete(index);
+        app.carrot.show_msg("Delete", "Deleted successfully!", Msg_Icon.Success);
+        if (box != null) box.close();
     }
 
     public void play_game(Texture2D tex,IDictionary data,bool is_game_1)
@@ -172,5 +214,6 @@ public class Manager_wall : MonoBehaviour
             this.app.play_game_1(tex, data);
         else
             this.app.play_game_2(tex, data);
+        app.data_offline.Close_box();
     }
 }
