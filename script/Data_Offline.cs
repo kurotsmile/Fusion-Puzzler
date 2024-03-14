@@ -68,41 +68,61 @@ public class Data_Offline : MonoBehaviour
                 Carrot_Box_Btn_Item btn_in_home=this.box.create_btn_menu_header(this.app.carrot.icon_carrot_all_category);
                 btn_in_home.set_act(() => this.show_data_in_home());
             }
-           
-            for(int i = length_data-1; i >=0; i--)
+
+            for (int i = length_data - 1; i >= 0; i--)
             {
-                string s_data = PlayerPrefs.GetString("data_wall_" + i,"");
+                string s_data = PlayerPrefs.GetString("data_wall_" + i, "");
                 if (s_data != "")
                 {
                     var index = i;
-                    IDictionary data_img = (IDictionary) Json.Deserialize(s_data);
+                    IDictionary data_img = (IDictionary)Json.Deserialize(s_data);
                     data_img["index"] = i;
                     string s_id_wall = "wall" + data_img["id"].ToString();
                     Carrot_Box_Item item_img = box.create_item("item_img_" + i);
-                    Texture2D tex = app.carrot.get_tool().get_texture2D_to_playerPrefs(s_id_wall);
+
                     item_img.set_title(data_img["name"].ToString());
                     item_img.set_tip(data_img["icon"].ToString());
-                    if (tex != null)
-                        item_img.set_icon_white(app.carrot.get_tool().Texture2DtoSprite(tex));
+
+                    Texture2D tex = null;
+                    if (app.carrot.os_app == OS.Web)
+                    {
+                        app.carrot.get_img(data_img["icon"].ToString(), item_img.img_icon);
+                    }
                     else
-                        app.carrot.get_img_and_save_playerPrefs(data_img["url"].ToString(), item_img.img_icon, s_id_wall);
+                    {
+                        tex = app.carrot.get_tool().get_texture2D_to_playerPrefs(s_id_wall);
+                        if (tex != null)
+                            item_img.set_icon_white(app.carrot.get_tool().Texture2DtoSprite(tex));
+                        else
+                            app.carrot.get_img_and_save_playerPrefs(data_img["icon"].ToString(), item_img.img_icon, s_id_wall);
+                    }
 
                     Carrot_Box_Btn_Item btn_game1 = item_img.create_item();
                     btn_game1.set_icon(icon_game1);
                     btn_game1.set_color(app.carrot.color_highlight);
-                    btn_game1.set_act(() => play_game(tex, data_img, true));
+                    if (app.carrot.os_app == OS.Web)
+                        btn_game1.set_act(() => play_game(item_img.img_icon.sprite.texture, data_img, true));
+                    else
+                        btn_game1.set_act(() => play_game(tex, data_img, true));
 
                     Carrot_Box_Btn_Item btn_game2 = item_img.create_item();
                     btn_game2.set_icon(icon_game2);
                     btn_game2.set_color(app.carrot.color_highlight);
-                    btn_game2.set_act(() => play_game(tex, data_img, false));
+                    if (app.carrot.os_app == OS.Web)
+                        btn_game2.set_act(() => play_game(item_img.img_icon.sprite.texture, data_img, false));
+                    else
+                        btn_game2.set_act(() => play_game(tex, data_img, false));
 
                     Carrot_Box_Btn_Item btn_del = item_img.create_item();
                     btn_del.set_icon(app.carrot.sp_icon_del_data);
                     btn_del.set_color(Color.red);
                     btn_del.set_act(() => this.delete(index));
 
-                    item_img.set_act(() => app.wall.Show_select_game(tex, data_img));
+                    if (app.carrot.os_app == OS.Web)
+                        item_img.set_act(() => app.wall.Show_select_game(item_img.img_icon.sprite.texture, data_img));
+                    else
+                        item_img.set_act(() => app.wall.Show_select_game(tex, data_img));
+
                 }
             }
             this.box.update_color_table_row();

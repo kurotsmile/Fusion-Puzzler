@@ -21,10 +21,18 @@ public class Panel_category : MonoBehaviour {
         this.app= app;
 		this.data=data_wall;
 		this.texData=app.carrot.get_tool().get_texture2D_to_playerPrefs(s_id_wall);
-		if (this.texData != null)
-			this.img_bk.sprite = this.Resize_img(this.texData);
-		else
-			if(data_wall["icon"]!=null) this.app.carrot.get_img_and_save_playerPrefs(data_wall["icon"].ToString(), null, s_id_wall, this.On_load_image_done);
+
+        if (app.carrot.os_app == Carrot.OS.Web)
+        {
+            if (data_wall["icon"] != null) this.app.carrot.get_img(data_wall["icon"].ToString(), On_load_image_done);
+        }
+        else
+        {
+            if (this.texData != null)
+                this.img_bk.sprite = this.Resize_img(this.texData);
+            else
+                if (data_wall["icon"] != null) this.app.carrot.get_img_and_save_playerPrefs(data_wall["icon"].ToString(), null, s_id_wall, this.On_load_image_done);
+        }
 
         this.txt_name.text = data["name"].ToString();
 
