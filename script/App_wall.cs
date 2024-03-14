@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using Carrot;
 using System.Collections;
+using System;
 
 public class App_wall : MonoBehaviour{
 
@@ -243,18 +244,21 @@ public class App_wall : MonoBehaviour{
     public void show_setting(){
         Carrot_Box box_setting=this.carrot.Create_Setting();
 
-        Carrot_Box_Item item_buy_all_img = box_setting.create_item_of_index("item_buy_all", 0);
-        item_buy_all_img.set_icon(carrot.icon_carrot_database);
-        item_buy_all_img.set_title("Unlock all photos");
-        item_buy_all_img.set_tip("Buy and use all images included in the game");
-        item_buy_all_img.set_act(() => carrot.buy_product(wall.index_buy_all_wall));
-        item_buy_all_img.set_type(Box_Item_Type.box_nomal);
-        item_buy_all_img.check_type();
+        if (wall.Get_status_buy_all_wall()==false)
+        {
+            Carrot_Box_Item item_buy_all_img = box_setting.create_item_of_index("item_buy_all", 0);
+            item_buy_all_img.set_icon(carrot.icon_carrot_database);
+            item_buy_all_img.set_title("Unlock all photos");
+            item_buy_all_img.set_tip("Buy and use all images included in the game");
+            item_buy_all_img.set_act(() => carrot.buy_product(wall.index_buy_all_wall));
+            item_buy_all_img.set_type(Box_Item_Type.box_nomal);
+            item_buy_all_img.check_type();
 
-        Carrot_Box_Btn_Item btn_buy = item_buy_all_img.create_item();
-        btn_buy.set_icon(carrot.icon_carrot_buy);
-        btn_buy.set_color(carrot.color_highlight);
-        Destroy(btn_buy.GetComponent<Button>());
+            Carrot_Box_Btn_Item btn_buy = item_buy_all_img.create_item();
+            btn_buy.set_icon(carrot.icon_carrot_buy);
+            btn_buy.set_color(carrot.color_highlight);
+            Destroy(btn_buy.GetComponent<Button>());
+        }
     }
 
     public void btn_show_login(){
@@ -303,9 +307,10 @@ public class App_wall : MonoBehaviour{
         string s_id_new_photo = "photo"+carrot.generateID();
         IDictionary data_new = (IDictionary) Json.Deserialize("{}");
         data_new["id"] = s_id_new_photo;
-        data_new["name"] = s_id_new_photo;
+        data_new["name"] = DateTime.Now.ToString();
         data_new["buy"] = "0";
         data_new["icon"] = "Camera";
+        data_new["index"] = data_offline.get_length_data().ToString();
         carrot.get_tool().PlayerPrefs_Save_by_data("wall"+s_id_new_photo, data_img.EncodeToPNG());
         this.data_offline.Add_data(data_new);
         if(!this.carrot.is_online()){
@@ -353,13 +358,13 @@ public class App_wall : MonoBehaviour{
     [ContextMenu("Test Updload scores Game 1")]
     public void Act_test_upload_scores_1()
     {
-        this.carrot.game.update_scores_player(Random.Range(1, 20), 0);
+        this.carrot.game.update_scores_player(UnityEngine.Random.Range(1, 20), 0);
     }
 
     [ContextMenu("Test Updload scores Game 2")]
     public void Act_test_upload_scores_2()
     {
-        this.carrot.game.update_scores_player(Random.Range(1, 20), 1);
+        this.carrot.game.update_scores_player(UnityEngine.Random.Range(1, 20), 1);
         this.carrot.play_vibrate();
     }
 }

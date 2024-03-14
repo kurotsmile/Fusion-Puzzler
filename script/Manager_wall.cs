@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.UI;
 
 public class Manager_wall : MonoBehaviour
 {
@@ -160,11 +161,21 @@ public class Manager_wall : MonoBehaviour
         item_game_jigsaw.set_icon(app.data_offline.icon_game1);
         item_game_jigsaw.set_act(() => this.play_game(tex, data,true));
 
+        Carrot_Box_Btn_Item btn_jigsaw_play = item_game_jigsaw.create_item();
+        btn_jigsaw_play.set_icon(app.carrot.game.icon_play_music_game);
+        btn_jigsaw_play.set_color(app.carrot.color_highlight);
+        Destroy(btn_jigsaw_play.GetComponent<Button>());
+
         Carrot.Carrot_Box_Item item_game_puzzler = box.create_item("game_puzzler");
         item_game_puzzler.set_title("Puzzler");
         item_game_puzzler.set_tip("The type of game that arranges the order of given puzzle pieces");
         item_game_puzzler.set_icon(app.data_offline.icon_game2);
         item_game_puzzler.set_act(() => this.play_game(tex, data, false));
+        
+        Carrot_Box_Btn_Item btn_puzzler_play = item_game_puzzler.create_item();
+        btn_puzzler_play.set_icon(app.carrot.game.icon_play_music_game);
+        btn_puzzler_play.set_color(app.carrot.color_highlight);
+        Destroy(btn_puzzler_play.GetComponent<Button>());
 
         Carrot_Box_Btn_Panel panel_btn = box.create_panel_btn();
         if (data["index"] != null)
@@ -274,5 +285,10 @@ public class Manager_wall : MonoBehaviour
         app.carrot.play_vibrate();
         app.data_offline.Add(data);
         if (btn_save != null) Destroy(btn_save.gameObject);
+    }
+
+    public bool Get_status_buy_all_wall()
+    {
+        return this.is_buy_all_img;
     }
 }

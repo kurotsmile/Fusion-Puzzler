@@ -196,4 +196,9 @@ public class Data_Offline : MonoBehaviour
     {
         if (box != null) box.close();
     }
+
+    public int get_length_data()
+    {
+        return this.length_data;
+    }
 }
